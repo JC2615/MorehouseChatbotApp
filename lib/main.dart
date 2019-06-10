@@ -66,11 +66,12 @@ class _ChatMessagesState extends State<ChatMessages>
 
   _buildComposer() {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 8.0),
+      margin: EdgeInsets.only(bottom: 5, left: 20, right: 20, top: 0), //height: 100,
       child: Row(
         children: <Widget>[
           Flexible(
             child: TextField(
+              textCapitalization: TextCapitalization.sentences,
               controller: _controllerText,
               onChanged: (value) {
                 setState(() {
@@ -82,6 +83,7 @@ class _ChatMessagesState extends State<ChatMessages>
             ),
           ),
           new IconButton(
+            alignment: Alignment.centerRight,
             icon: Icon(Icons.send),
             onPressed:
             _isComposing ? () => _handleSubmit(_controllerText.text) : null,
@@ -93,13 +95,15 @@ class _ChatMessagesState extends State<ChatMessages>
 
   _handleSubmit(String value) {
     _controllerText.clear();
-    _addMessage(
+    if (value.trim().isNotEmpty) {
+     _addMessage(
       text: value,
       name: "User",
       initials: "U",
-    );
+      ); 
 
-    _requestChatBot(value);
+      _requestChatBot(value);
+    }
   }
 
   _requestChatBot(String text) async {
