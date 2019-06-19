@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:googleapis/dialogflow/v2.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:flutter/services.dart';
-
-
+import 'package:intl/intl.dart';
+int count = 1;
 void main() => runApp(new MyApp());
 
 class MyApp extends StatelessWidget {
@@ -124,8 +124,8 @@ class _ChatMessagesState extends State<ChatMessages>
         .detectIntent(request, dialogSessionId);
     var result = resp.queryResult;
     _addMessage(
-        name: "ChatBot",
-        initials: "CB",
+        name: "Morehouse Chatbot",
+        initials: "MC",
         bot: true,
         text: result.fulfillmentText);
   }
@@ -145,7 +145,7 @@ class _ChatMessagesState extends State<ChatMessages>
   void _addMessage(
       {String name, String initials, bool bot = false, String text}) {
     var animationController = AnimationController(
-      duration: new Duration(milliseconds: 1400),
+      duration: new Duration(seconds: 1),
       vsync: this,
     );
 
@@ -159,9 +159,10 @@ class _ChatMessagesState extends State<ChatMessages>
     setState(() {
       _messages.insert(0, message);
     });
-
+    count++;
     animationController.forward();
   }
+  
 }
 
 class ChatMessage {
@@ -182,26 +183,73 @@ class ChatMessage {
 
 class ChatMessageListItem extends StatelessWidget {
   final ChatMessage chatMessage;
-
   ChatMessageListItem(this.chatMessage);
+  
 
   @override
   Widget build(BuildContext context) {
-    return SizeTransition(
-      sizeFactor: CurvedAnimation(
-          parent: chatMessage.animationController, curve: Curves.easeOut),
-      child: Container(
+    DateTime now = DateTime.now();
+    var time =  new DateFormat.jm().format(now); 
+    CircleAvatar mh = CircleAvatar(
+                backgroundImage: AssetImage('config/morehouse.png'),
+                backgroundColor: chatMessage.bot
+                    ? Colors.white
+                    : Colors.white,
+              );
+    CircleAvatar user = CircleAvatar(
+                child: Text(chatMessage.initials),
+                backgroundColor: chatMessage.bot
+                    ? Colors.red[900]
+                    : Colors.red[900],
+              );
+
+    CircleAvatar circ;
+      Container messageBox;
+
+      if(chatMessage.bot){
+        circ = mh;
+      }
+      else{
+        circ  = user;
+      }
+
+      Container mhBox = Container(
+        margin: EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            Flexible(
+              child: Container(
+                margin: EdgeInsets.only(right: 16.0),
+                child: new Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    Text('${chatMessage.name}',
+                        style: Theme.of(context).textTheme.subhead, textAlign: TextAlign.right,),
+                    Text('$time',
+                        style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold)),
+                    Container(
+                      margin: const EdgeInsets.only(top: 5.0),
+                      child: Text(chatMessage.text, textAlign: TextAlign.right,)
+                    )
+                  ],
+                ))
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: circ,
+            )
+          ],
+        ),
+      );
+
+      Container userBox = Container(
         margin: EdgeInsets.symmetric(vertical: 8.0),
         child: Row(
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.only(left: 16.0),
-              child: CircleAvatar(
-                child: Text(chatMessage.initials ?? "JD"),
-                backgroundColor: chatMessage.bot
-                    ? Colors.red[900]
-                    : Colors.red[900],
-              ),
+              child: circ,
             ),
             Flexible(
               child: Container(
@@ -209,8 +257,10 @@ class ChatMessageListItem extends StatelessWidget {
                 child: new Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(chatMessage.name ?? "Jane Doe",
-                        style: Theme.of(context).textTheme.subhead),
+                    Text('${chatMessage.name}',
+                        style: Theme.of(context).textTheme.subhead, textAlign: TextAlign.right,),
+                    Text('$time',
+                        style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold)),
                     Container(
                       margin: const EdgeInsets.only(top: 5.0),
                       child: Text(chatMessage.text)
@@ -220,7 +270,21 @@ class ChatMessageListItem extends StatelessWidget {
             )
           ],
         ),
-      ),
+      );
+      
+      if(chatMessage.bot){
+        messageBox = mhBox;
+      }
+      else{
+        messageBox  = userBox;
+      }
+    
+      return SizeTransition(
+      sizeFactor: CurvedAnimation(
+          parent: chatMessage.animationController, curve: Curves.easeOut),
+      child: messageBox
     );
+
+    
   }
 }
