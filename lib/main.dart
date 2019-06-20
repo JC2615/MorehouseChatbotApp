@@ -3,8 +3,71 @@ import 'package:googleapis/dialogflow/v2.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-int count = 1;
-void main() => runApp(new MyApp());
+import 'package:url_launcher/url_launcher.dart';
+
+void main() {
+  runApp(MaterialApp(
+    title: 'Morehouse Chatbot',
+    home: HomePage(),
+  ));
+}
+
+class HomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text('Morehouse Chatbot'),
+          backgroundColor: Colors.red[900],
+        ),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          //mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Container(
+              padding: EdgeInsets.only(top: 100.0),
+              child: Image.asset(
+              'config/morehouse.png',
+              width: 300,
+              height: 300,
+            )
+            ),
+            Row(
+              //crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                Container(
+                    padding: EdgeInsets.only(top: 50.0, right: 20.0),
+                    child: RaisedButton(
+                      color: Colors.red[900],
+                      textColor: Colors.white,
+                  child: Text('Ask Morehouse'),
+                  shape: RoundedRectangleBorder(),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MyApp()),
+                    );
+                  },
+                )),
+                Container(
+                    padding: EdgeInsets.only(top: 50.0, left: 20.0),
+                    child: RaisedButton(
+                      color: Colors.red[900],
+                      textColor: Colors.white,
+                  shape: RoundedRectangleBorder(),
+                  child: Text('Call Morehouse'),
+                  onPressed: () {
+                    launch("tel://4706390999");
+                  },
+                ))
+              ],
+            )
+          ],
+        ));
+  }
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -15,6 +78,9 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.red,
       ),
       home: new ChatMessages(),
+      routes: <String, WidgetBuilder>{
+        '/home': (BuildContext context) => HomePage(),
+      },
     );
   }
 }
@@ -42,7 +108,19 @@ class _ChatMessagesState extends State<ChatMessages>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: new AppBar(title: new Text("Morehouse Chatbot"), backgroundColor: Colors.red[900],),
+        appBar: new AppBar(
+          leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              tooltip: 'Return to homepage',
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/home');
+              }),
+          centerTitle: true,
+          title: new Text(
+            "Morehouse Chatbot",
+          ),
+          backgroundColor: Colors.red[900],
+        ),
         body: Column(
           children: <Widget>[
             _buildList(),
@@ -66,7 +144,8 @@ class _ChatMessagesState extends State<ChatMessages>
 
   _buildComposer() {
     return Container(
-      margin: EdgeInsets.only(bottom: 5, left: 20, right: 20, top: 0), //height: 100,
+      margin: EdgeInsets.only(
+          bottom: 5, left: 20, right: 20, top: 0), //height: 100,
       child: Row(
         children: <Widget>[
           Flexible(
@@ -79,14 +158,15 @@ class _ChatMessagesState extends State<ChatMessages>
                 });
               },
               onSubmitted: _handleSubmit,
-              decoration: InputDecoration.collapsed(hintText: "Enter question..."),
+              decoration:
+                  InputDecoration.collapsed(hintText: "Enter question..."),
             ),
           ),
           new IconButton(
             alignment: Alignment.centerRight,
             icon: Icon(Icons.send),
             onPressed:
-            _isComposing ? () => _handleSubmit(_controllerText.text) : null,
+                _isComposing ? () => _handleSubmit(_controllerText.text) : null,
           ),
         ],
       ),
@@ -96,18 +176,19 @@ class _ChatMessagesState extends State<ChatMessages>
   _handleSubmit(String value) {
     _controllerText.clear();
     if (value.trim().isNotEmpty) {
-     _addMessage(
-      text: value,
-      name: "User",
-      initials: "U",
-      ); 
+      _addMessage(
+        text: value,
+        name: "User",
+        initials: "U",
+      );
 
       _requestChatBot(value);
     }
   }
 
   _requestChatBot(String text) async {
-    var dialogSessionId = "projects/morehouse-5b1fa/agent/sessions/169808355983";
+    var dialogSessionId =
+        "projects/morehouse-5b1fa/agent/sessions/169808355983";
 
     Map data = {
       "queryInput": {
@@ -159,10 +240,8 @@ class _ChatMessagesState extends State<ChatMessages>
     setState(() {
       _messages.insert(0, message);
     });
-    count++;
     animationController.forward();
   }
-  
 }
 
 class ChatMessage {
@@ -175,116 +254,113 @@ class ChatMessage {
 
   ChatMessage(
       {this.name,
-        this.initials,
-        this.text,
-        this.bot = false,
-        this.animationController});
+      this.initials,
+      this.text,
+      this.bot = false,
+      this.animationController});
 }
 
 class ChatMessageListItem extends StatelessWidget {
   final ChatMessage chatMessage;
   ChatMessageListItem(this.chatMessage);
-  
 
   @override
   Widget build(BuildContext context) {
     DateTime now = DateTime.now();
-    var time =  new DateFormat.jm().format(now); 
+    var time = new DateFormat.jm().format(now);
     CircleAvatar mh = CircleAvatar(
-                backgroundImage: AssetImage('config/morehouse.png'),
-                backgroundColor: chatMessage.bot
-                    ? Colors.white
-                    : Colors.white,
-              );
+      backgroundImage: AssetImage('config/morehouse.png'),
+      backgroundColor: chatMessage.bot ? Colors.white : Colors.white,
+    );
     CircleAvatar user = CircleAvatar(
-                child: Text(chatMessage.initials),
-                backgroundColor: chatMessage.bot
-                    ? Colors.red[900]
-                    : Colors.red[900],
-              );
-
-    CircleAvatar circ;
-      Container messageBox;
-
-      if(chatMessage.bot){
-        circ = mh;
-      }
-      else{
-        circ  = user;
-      }
-
-      Container mhBox = Container(
-        margin: EdgeInsets.symmetric(vertical: 8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            Flexible(
-              child: Container(
-                margin: EdgeInsets.only(right: 16.0),
-                child: new Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: <Widget>[
-                    Text('${chatMessage.name}',
-                        style: Theme.of(context).textTheme.subhead, textAlign: TextAlign.right,),
-                    Text('$time',
-                        style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold)),
-                    Container(
-                      margin: const EdgeInsets.only(top: 5.0),
-                      child: Text(chatMessage.text, textAlign: TextAlign.right,)
-                    )
-                  ],
-                ))
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: circ,
-            )
-          ],
-        ),
-      );
-
-      Container userBox = Container(
-        margin: EdgeInsets.symmetric(vertical: 8.0),
-        child: Row(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.only(left: 16.0),
-              child: circ,
-            ),
-            Flexible(
-              child: Container(
-                margin: EdgeInsets.only(left: 16.0),
-                child: new Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text('${chatMessage.name}',
-                        style: Theme.of(context).textTheme.subhead, textAlign: TextAlign.right,),
-                    Text('$time',
-                        style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold)),
-                    Container(
-                      margin: const EdgeInsets.only(top: 5.0),
-                      child: Text(chatMessage.text)
-                    )
-                  ],
-                ))
-            )
-          ],
-        ),
-      );
-      
-      if(chatMessage.bot){
-        messageBox = mhBox;
-      }
-      else{
-        messageBox  = userBox;
-      }
-    
-      return SizeTransition(
-      sizeFactor: CurvedAnimation(
-          parent: chatMessage.animationController, curve: Curves.easeOut),
-      child: messageBox
+      child: Text(chatMessage.initials),
+      backgroundColor: chatMessage.bot ? Colors.red[900] : Colors.red[900],
     );
 
-    
+    CircleAvatar circ;
+    Container messageBox;
+
+    if (chatMessage.bot) {
+      circ = mh;
+    } else {
+      circ = user;
+    }
+
+    Container mhBox = Container(
+      margin: EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: <Widget>[
+          Flexible(
+              child: Container(
+                  margin: EdgeInsets.only(right: 16.0),
+                  child: new Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: <Widget>[
+                      Text(
+                        '${chatMessage.name}',
+                        style: Theme.of(context).textTheme.subhead,
+                        textAlign: TextAlign.right,
+                      ),
+                      Text('$time',
+                          style: TextStyle(
+                              fontSize: 13.0, fontWeight: FontWeight.bold)),
+                      Container(
+                          margin: const EdgeInsets.only(top: 5.0),
+                          child: Text(
+                            chatMessage.text,
+                            textAlign: TextAlign.right,
+                          ))
+                    ],
+                  ))),
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: circ,
+          )
+        ],
+      ),
+    );
+
+    Container userBox = Container(
+      margin: EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: circ,
+          ),
+          Flexible(
+              child: Container(
+                  margin: EdgeInsets.only(left: 16.0),
+                  child: new Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        '${chatMessage.name}',
+                        style: Theme.of(context).textTheme.subhead,
+                        textAlign: TextAlign.right,
+                      ),
+                      Text('$time',
+                          style: TextStyle(
+                              fontSize: 13.0, fontWeight: FontWeight.bold)),
+                      Container(
+                          margin: const EdgeInsets.only(top: 5.0),
+                          child: Text(chatMessage.text))
+                    ],
+                  )))
+        ],
+      ),
+    );
+
+    if (chatMessage.bot) {
+      messageBox = mhBox;
+    } else {
+      messageBox = userBox;
+    }
+
+    return SizeTransition(
+        sizeFactor: CurvedAnimation(
+            parent: chatMessage.animationController, curve: Curves.easeOut),
+        child: messageBox);
   }
 }
