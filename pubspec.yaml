@@ -3,7 +3,7 @@ description: A sample using Dialogflow.
 
 dependencies:
   intl: ^0.15.8
-  url_launcher: ^4.0.3
+  url_launcher: ^5.0.3
   flutter:
     sdk: flutter
 
